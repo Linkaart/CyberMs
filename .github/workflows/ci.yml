@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      - name: Install root deps (if any)
+        run: |
+          if [ -f package.json ]; then npm ci; fi
+
+      - name: Install frontend deps
+        run: |
+          if [ -d frontend ]; then cd frontend; npm ci; fi
+
+      - name: Install backend deps
+        run: |
+          if [ -d backend ]; then cd backend; npm ci; fi
+
+      - name: Run frontend tests
+        working-directory: frontend
+        run: |
+          npm test -- --runInBand --detectOpenHandles
+
+      - name: Run backend tests
+        working-directory: backend
+        run: |
+          npm run test:ci
+
+      - name: Upload test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: |
+            frontend/jest-results.xml
+            backend/jest-results.xml
+
+      - name: Publish JUnit reports to Checks
+        if: ${{ always() }}
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: |
+            frontend/jest-results.xml
+            backend/jest-results.xml
