@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// For SQLite tests we avoid enums and Json, using strings instead.
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String
+  role         String    @default("VIEWER")
+  name         String?
+  isSeedAdmin  Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  vulnerabilities Vulnerability[]
+  auditLogs       AuditLog[]
+  refreshTokens   RefreshToken[]
+
+  @@index([email])
+}
+
+model Vulnerability {
+  id               String    @id @default(uuid())
+  title            String
+  description      String
+  severity         String    @default("MEDIUM")
+  status           String    @default("OPEN")
+  source           String    @default("MANUAL")
+  relatedAsset     String?
+  application      String?
+  assignedToUserId Int?
+  assignedTo       User?     @relation(fields: [assignedToUserId], references: [id])
+  dueDate          DateTime?
+  isDeleted        Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  auditLogs        AuditLog[]
+
+  @@index([severity])
+  @@index([status])
+  @@index([assignedToUserId])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id           Int      @id @default(autoincrement())
+  userId       Int?
+  user         User?    @relation(fields: [userId], references: [id])
+  actionType   String
+  resourceType String
+  resourceId   String?
+  // details stored as text in sqlite tests
+  details      String?
+  createdAt    DateTime @default(now())
+
+  // optional relation to vulnerability when applicable
+  vulnerabilityId String?
+  vulnerability   Vulnerability? @relation(fields: [vulnerabilityId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([resourceType, resourceId])
+}
+
+model RefreshToken {
+  id          Int      @id @default(autoincrement())
+  token       String   @unique
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  revoked     Boolean  @default(false)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([revoked])
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="3" failures="0" errors="0" time="3.947">
+  <testsuite name="auth refresh flow" errors="0" failures="0" skipped="0" timestamp="2026-04-03T07:24:12" time="2.822" tests="1">
+    <testcase classname="auth refresh flow rotates refresh token using cookie + csrf header" name="auth refresh flow rotates refresh token using cookie + csrf header" time="0.114">
+    </testcase>
+  </testsuite>
+  <testsuite name="auth.service unit (example)" errors="0" failures="0" skipped="0" timestamp="2026-04-03T07:24:15" time="0.798" tests="1">
+    <testcase classname="auth.service unit (example) register and authenticate flow (integration style)" name="auth.service unit (example) register and authenticate flow (integration style)" time="0.486">
+    </testcase>
+  </testsuite>
+  <testsuite name="vulnerabilities integration (example)" errors="0" failures="0" skipped="0" timestamp="2026-04-03T07:24:16" time="0.242" tests="1">
+    <testcase classname="vulnerabilities integration (example) creates and retrieves a vulnerability" name="vulnerabilities integration (example) creates and retrieves a vulnerability" time="0.043">
+    </testcase>
+  </testsuite>
+</testsuites>

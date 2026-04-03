@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  ANALYST
+  VIEWER
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Status {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  WONTFIX
+}
+
+enum Source {
+  INTERNAL
+  PENTEST
+  SCANNER
+  MANUAL
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(VIEWER)
+  name         String?
+  isSeedAdmin  Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  vulnerabilities Vulnerability[] @relation("AssignedTo")
+  auditLogs       AuditLog[]      @relation("UserActions")
+
+  @@index([role])
+  @@index([email])
+}
+
+model Vulnerability {
+  id               String    @id @default(uuid())
+  title            String
+  description      String
+  severity         Severity  @default(MEDIUM)
+  status           Status    @default(OPEN)
+  source           Source    @default(MANUAL)
+  relatedAsset     String?
+  application      String?
+  assignedToUserId Int?
+  assignedTo       User?     @relation("AssignedTo", fields: [assignedToUserId], references: [id])
+  dueDate          DateTime?
+  isDeleted        Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  auditLogs        AuditLog[] @relation("ResourceActions")
+
+  @@index([severity])
+  @@index([status])
+  @@index([assignedToUserId])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id           Int      @id @default(autoincrement())
+  userId       Int?
+  user         User?    @relation("UserActions", fields: [userId], references: [id])
+  actionType   String
+  resourceType String
+  resourceId   String?
+  details      Json?
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([resourceType, resourceId])
+}
+
+model RefreshToken {
+  id          Int      @id @default(autoincrement())
+  token       String   @unique
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  revoked     Boolean  @default(false)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([revoked])
+}

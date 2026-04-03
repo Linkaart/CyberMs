@@ -1,0 +1,12 @@
+{
+  "name": "vulntrack",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start:demo": "node scripts/start-demo.js"
+  },
+  "devDependencies": {
+    "wait-on": "^7.0.0",
+    "open": "^9.0.0"
+  }
+}
